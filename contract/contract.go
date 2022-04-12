@@ -47,7 +47,10 @@ func (j *jsonRPCNodeProvider) Txn(addr ethgo.Address, key ethgo.Key, input []byt
 
 	// estimate gas price
 	if opts.GasPrice == 0 {
-		opts.GasPrice, err = j.client.GasPrice()
+		price, err := j.client.GasPrice()
+		temp := big.NewInt(0).Mul(big.NewInt(0).SetUint64(price), big.NewInt(13))
+		gasPriceI := big.NewInt(0).Div(temp, big.NewInt(10))
+		opts.GasPrice = gasPriceI.Uint64()
 		if err != nil {
 			return nil, err
 		}
@@ -74,6 +77,7 @@ func (j *jsonRPCNodeProvider) Txn(addr ethgo.Address, key ethgo.Key, input []byt
 	if err != nil {
 		return nil, err
 	}
+	nonce, _ := j.client.GetNonce(from, ethgo.Latest)
 
 	// send transaction
 	rawTxn := &ethgo.Transaction{
@@ -82,6 +86,7 @@ func (j *jsonRPCNodeProvider) Txn(addr ethgo.Address, key ethgo.Key, input []byt
 		GasPrice: opts.GasPrice,
 		Gas:      opts.GasLimit,
 		Value:    opts.Value,
+		Nonce:    nonce,
 	}
 	if addr != ethgo.ZeroAddress {
 		rawTxn.To = &addr
@@ -279,7 +284,6 @@ func (a *Contract) Txn(method string, args ...interface{}) (Txn, error) {
 			input = append(abiMethod.ID(), data...)
 		}
 	}
-
 	txn, err := a.provider.Txn(a.addr, a.key, input, &TxnOpts{})
 	if err != nil {
 		return nil, err

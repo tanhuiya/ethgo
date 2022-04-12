@@ -2,6 +2,7 @@ package blocktracker
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 	"testing"
@@ -40,24 +41,26 @@ func testListener(t *testing.T, server *testutil.TestServer, tracker BlockTracke
 		}
 	}
 
-	server.ProcessBlock()
+	//server.ProcessBlock()
 	recv()
-
-	server.ProcessBlock()
-	recv()
+	//
+	//server.ProcessBlock()
+	//recv()
 }
 
 func TestBlockTracker_Listener_JsonRPC(t *testing.T) {
-	s := testutil.NewTestServer(t, nil)
-	defer s.Close()
+	//s := testutil.NewTestServer(t, nil)
+	//defer s.Close()
 
-	c, _ := jsonrpc.NewClient(s.HTTPAddr())
+	c, _ := jsonrpc.NewClient("https://mainnet.infura.io/v3")
 	defer c.Close()
 
 	logger := log.New(os.Stderr, "", log.LstdFlags)
 	tracker := NewJSONBlockTracker(logger, c.Eth())
 	tracker.PollInterval = 1 * time.Second
-	testListener(t, s, tracker)
+	go testListener(t, nil, tracker)
+	select {
+	}
 }
 
 func TestBlockTracker_Listener_Websocket(t *testing.T) {
@@ -81,7 +84,7 @@ func TestBlockTracker_Lifecycle(t *testing.T) {
 	})
 	defer s.Close()
 
-	c, _ := jsonrpc.NewClient(s.HTTPAddr())
+	c, _ := jsonrpc.NewClient("https://mainnet.infura.io/v3")
 	tr := NewBlockTracker(c.Eth())
 	assert.NoError(t, tr.Init())
 
@@ -90,7 +93,8 @@ func TestBlockTracker_Lifecycle(t *testing.T) {
 	sub := tr.Subscribe()
 	for i := 0; i < 10; i++ {
 		select {
-		case <-sub:
+		case evt := <-sub:
+			fmt.Println(evt.Added)
 		case <-time.After(2 * time.Second):
 			t.Fatal("bad")
 		}
