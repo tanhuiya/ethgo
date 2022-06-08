@@ -338,7 +338,7 @@ func (k *JSONBlockTracker) Track(ctx context.Context, handle func(block *ethgo.B
 				return
 
 			case <-time.After(k.PollInterval):
-				block, err := k.provider.GetBlockByNumber(ethgo.Latest, false)
+				block, err := k.provider.GetBlockByNumber(ethgo.Latest, true)
 				if err != nil {
 					k.logger.Printf("[ERR]: Tracker failed to get last block: %v", err)
 					continue
