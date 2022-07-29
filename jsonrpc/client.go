@@ -1,7 +1,9 @@
 package jsonrpc
 
 import (
+	"errors"
 	"github.com/umbracle/ethgo/jsonrpc/transport"
+	"time"
 )
 
 // Client is the jsonrpc client
@@ -58,19 +60,19 @@ func (c *Client) Close() error {
 
 // Call makes a jsonrpc call
 func (c *Client) Call(method string, out interface{}, params ...interface{}) error {
-	//tick := time.NewTicker(time.Second * 5)
-	//timeOutC := make(chan bool)
-	//go func(tc chan bool) {
-	//	c.transport.Call(method, out, params...)
-	//	timeOutC <- false
-	//}(timeOutC)
-	//select {
-	//case <-tick.C:
-	//	return errors.New("Request Timeout")
-	//case <-timeOutC:
-	//	return nil
-	//}
-	return c.transport.Call(method, out, params...)
+	tick := time.NewTicker(time.Second * 5)
+	timeOutC := make(chan bool)
+	go func(tc chan bool) {
+		c.transport.Call(method, out, params...)
+		timeOutC <- false
+	}(timeOutC)
+	select {
+	case <-tick.C:
+		return errors.New("Request Timeout")
+	case <-timeOutC:
+		return nil
+	}
+	//return c.transport.Call(method, out, params...)
 }
 
 // SetMaxConnsLimit sets the maximum number of connections that can be established with a host
