@@ -2,6 +2,7 @@ package transport
 
 import (
 	"encoding/json"
+	"time"
 
 	"github.com/umbracle/ethgo/jsonrpc/codec"
 	"github.com/valyala/fasthttp"
@@ -16,8 +17,11 @@ type HTTP struct {
 
 func newHTTP(addr string, headers map[string]string) *HTTP {
 	return &HTTP{
-		addr:    addr,
-		client:  &fasthttp.Client{},
+		addr: addr,
+		client: &fasthttp.Client{
+			ReadTimeout:  time.Second * 5,
+			WriteTimeout: time.Second * 5,
+		},
 		headers: headers,
 	}
 }
