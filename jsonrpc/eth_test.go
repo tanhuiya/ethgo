@@ -3,9 +3,11 @@ package jsonrpc
 import (
 	"bytes"
 	"encoding/hex"
+	"fmt"
 	"math/big"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/umbracle/ethgo"
@@ -29,19 +31,21 @@ func TestEthAccounts(t *testing.T) {
 }
 
 func TestEthBlockNumber(t *testing.T) {
-	i := uint64(0)
-	testutil.MultiAddr(t, nil, func(s *testutil.TestServer, addr string) {
-		c, _ := NewClient(addr)
-		defer c.Close()
-
-		for count := 0; count < 10; count, i = count+1, i+1 {
-			num, err := c.Eth().BlockNumber()
-			assert.NoError(t, err)
-			assert.Equal(t, num, i)
-			assert.NoError(t, s.ProcessBlock())
-			count++
-		}
-	})
+	//i := uint64(0)
+	//testutil.MultiAddr(t, nil, func(s *testutil.TestServer, addr string) {
+	c, _ := NewClient("http://localhost:1317")
+	defer c.Close()
+	now := time.Now()
+	num, err := c.Eth().BlockNumber()
+	fmt.Println(int(time.Now().Unix()-now.Unix()), num, err)
+	//for count := 0; count < 10; count, i = count+1, i+1 {
+	//	num, err := c.Eth().BlockNumber()
+	//	assert.NoError(t, err)
+	//	assert.Equal(t, num, i)
+	//	assert.NoError(t, s.ProcessBlock())
+	//	count++
+	//}
+	//})
 }
 
 func TestEthGetCode(t *testing.T) {

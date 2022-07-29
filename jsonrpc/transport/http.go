@@ -15,12 +15,14 @@ type HTTP struct {
 	headers map[string]string
 }
 
+const TimeOutRequst = time.Second * 10
+
 func newHTTP(addr string, headers map[string]string) *HTTP {
 	return &HTTP{
 		addr: addr,
 		client: &fasthttp.Client{
-			ReadTimeout:  time.Second * 5,
-			WriteTimeout: time.Second * 5,
+			ReadTimeout:  TimeOutRequst,
+			WriteTimeout: TimeOutRequst,
 		},
 		headers: headers,
 	}
@@ -64,9 +66,12 @@ func (h *HTTP) Call(method string, out interface{}, params ...interface{}) error
 	}
 	req.SetBody(raw)
 
-	if err := h.client.Do(req, res); err != nil {
+	if err := h.client.DoTimeout(req, res, TimeOutRequst); err != nil {
 		return err
 	}
+	//if err := h.client.Do(req, res); err != nil {
+	//	return err
+	//}
 
 	// Decode json-rpc response
 	var response codec.Response
